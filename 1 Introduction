@@ -11,3 +11,14 @@ Drawbacks:
 2. Deployment complexity - in production there is operational complexity of deploying and maintaining a large set of services
 3. Increased memory consumption - compared to monoliths, each instance of deployed microservices (NxM) takes more memory. Each instances runs in it's own JVM or could be running on it's own AWS VM.
 
+When to use microservices architecture?
+When developing the first version of an application, you often do not have the problems that this approach solves. Moreover, using an elaborate, distributed architecture will slow down development. This can be a major problem for startups. Later on, however, when the challenge is how to scale and you need to use functional decomposition, the tangled dependencies might make it difficult to decompose your monolithic application into a set of services.
+
+How to decompose application into services?
+Decompose by business capability, decompose by domain-driven design subdomain, decompose by verb or use-case (performing particular actions), or decompose by noun (performing actions against particular entity/resource types. Each service should have a small set of services, similar to classes following Single Responsibility Principle or SRP.
+
+How to maintain data consistency?
+To ensure loose coupling, each service has its own database. Maintaining data consistency between services is a challenge because 2 phase-commit/distributed transactions is not an option for many applications. An application must instead use the Saga pattern. A service publishes an event when its data changes. Other services consume that event and update their data.
+
+How to implement queries?
+Another challenge is implementing queries that need to retrieve data owned by multiple services. API Composition and Command Query Responsibility Segregation (CQRS) are used here. 
