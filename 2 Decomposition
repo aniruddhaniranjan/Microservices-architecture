@@ -1,0 +1,16 @@
+Other than SRP, another principle that can be applied is Common Closure Principle (CCP). The application should be decomposed in a way so that most new and changed requirements only affect a single service. That is because changes that affect multiple services requires coordination across multiple teams, which slows down development. CCP states that classes that change for the same reason should be in the same package. Perhaps, for instance, two classes implement different aspects of the same business rule. The goal is that when that business rule changes developers, only need to change code in a small number - ideally only one - of packages. This kind of thinking makes sense when designing services since it will help ensure that each change should impact only one service.
+
+Driving Forces:
+1. Architecture must be stable
+2. Services must be cohesive - implement a small set of strongly related functionalities
+3. Services must conform to the Common Closure Principle, should be loosely coupled. and should be easily testable
+4. Services must be developed easily by small teams, and teams which own one or more services should be autonomous (develop, test, deploy independently)
+
+Different categories of solutions to this are available.
+I. DECOMPOSITION BY BUSINESS CAPABILITY
+A business capability is a concept from business architecture modeling. It is something that a business does in order to generate value. A business capability often corresponds to a business object - such as order or customer. Business capabilities are often organized into a multi-level hierarchy. For example, an enterprise application might have top-level categories such as Product/Service development, Product/Service delivery, Demand generation, etc. The business capabilities of an online store include management of Product catalog, Inventory, Order, Delivery.
+
+This pattern has the following benefits:
+Stable architecture since the business capabilities are relatively stable
+Development teams are cross-functional, autonomous, and organized around delivering business value rather than technical features
+Services are cohesive and loosely coupled
