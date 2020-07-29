@@ -1,0 +1,1 @@
+Microservices app typically handles HTTP request and responses by executing business logic, accessing a DB, exchanging msgs with other services and returning a response (HTML/JSON/XML). Communication with other services using web services or message brokers.
