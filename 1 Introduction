@@ -1,1 +1,13 @@
 Microservices app typically handles HTTP request and responses by executing business logic, accessing a DB, exchanging msgs with other services and returning a response (HTML/JSON/XML). Communication with other services using web services or message brokers.
+Circumstances - Group of devs who need to be highly productive, application is deployed continuously, scalable and available (no of instances), easy to understand and modify, and capable of leveraging emerging technologies
+Solution - Architect application as a set of loosely coupled, collaborating services. This approach corresponds to the Y-axis of the Scale Cube. Each service is highly maintainable and testable, loosely coupled with other services, independently deployable, capable of being developed by a small team (large teams have high communication overhead). Communication between services is via synchronous protocols (HTTP/REST) or asynchronous protocols (AMQP). The services are independently developed and deployed. Each service has it's own database and the data consistency between services is done using Saga pattern.
+
+Other Benefits include:
+Improved fault isolation. For example, if there is a memory leak in one service then only that service will be affected. The other services will continue to handle requests. In comparison, one misbehaving component of a monolithic architecture can bring down the entire system.
+Eliminates any long-term commitment to a technology stack. When developing a new service you can pick a new technology stack. Similarly, when making major changes to an existing service you can rewrite it using a new technology stack.
+
+Drawbacks:
+1. Developer now has to build a complex distributed system - build interservice communication and deal with partial failures, implementing requests spanning multiple services is more complex, testing interactions between components is more complex, developer tools/IDE aren't tailored toward building distributed applications
+2. Deployment complexity - in production there is operational complexity of deploying and maintaining a large set of services
+3. Increased memory consumption - compared to monoliths, each instance of deployed microservices (NxM) takes more memory. Each instances runs in it's own JVM or could be running on it's own AWS VM.
+
