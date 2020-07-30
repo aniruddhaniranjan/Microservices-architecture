@@ -4,7 +4,19 @@ A client of food delivery application creates an order by making an HTTP POST /o
 The Order Service could invoke each of these services using synchronous request/response. It might, for example, implement the inter-service communication using REST or gRPC. a key drawback of using synchronous request/response is that it reduces availability. That’s because if any of the Order Sevice’s collaborators are unavailable, it will not be able to create the order and must return an error to the client. [Synchronous Request and Response](https://microservices.io/i/Order-Service-synchronous.png)
 
 An alternative approach is to eliminate all synchronous communication between the Order Service and its collaborators by using the CQRS and Saga patterns. The Order Service can use the CQRS pattern to maintain a replica of the restaurant menu’s and there by eliminate the need to synchronously fetch data from the Restaurant Service. It can validate the order asynchronously by using the Saga pattern. The Order Service creates an Order in a PENDING state and sends back a response to the POST /order. It then completes the creation of the order by communicating asynchronously with the other services. [Asynch Request and Response](https://microservices.io/i/Order-Service-asynchronous.png)
+A key benefit of this approach is that it improves availability. The Order Service always respond to a POST /orders request even when one of the other services is unavailable. One drawback, however, of using a saga to complete the creation of the order is that the response to the POST doesn’t tell the client whether the order was approved. The client must find out by periodically invoking GET /orders/{orderId}.
 
+Problem Statement: How should a service collaborate with other services when handling a synchronous request?
+Driving Forces:
+1. Responsibility of handling a request is distributed across many services
+2. Operation required to be highly available with low latency
+3. Availability = Product of avail of each service (serviceAvail ^ numberOfSynchCollaboratingServices)
+4. A service can retry a request to a failed collaborator but this increases response time.
+
+Solution: Design a service so that it can respond to a synchronous request without waiting for the response from any other service. a. One way to make a service self-contained is to implement needed functionality as a service module rather than a separate service - we could merge two or more services. b. A self-contained service uses the Saga pattern to asynchronously maintain data consistency. c. It uses the CQRS pattern to maintain a replica of data owned by other services.
+
+Benefits - Improved availability and response times
+Drawbacks - More cost and complexity of using CQRS, More complexity and less straightforward APIs of using Saga, Larger service due to submodules (vs separate service)
 
 ========================================================================================================================================================================================
 SERVICE PER TEAM
