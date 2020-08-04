@@ -20,3 +20,22 @@ Drawbacks - More cost and complexity of using CQRS, More complexity and less str
 
 ========================================================================================================================================================================================
 SERVICE PER TEAM
+Context of service ownwership
+Option 1 - Each team might be responsible for implementing features that span multiple services. On the one hand, this approach aligns teams with the user experience. But on the other hand, it increases the amount of coordination needed between the teams. Also, the lack of code ownership increases the risk of poor code quality.
+Option 2 - The team, which is responsible for a business function/capability owns a code base, which they deploy as one of more services. As a result, the team can freely develop, test, deploy and scale its services. They primarily interact with other teams in order to negotiate APIs.
+
+Problem - Relationship between teams and services
+Driving Forces:
+1. Teams should be small, autonomous and loosely coupled
+2. The size and complexity of the team’s code base must not exceed the team’s cognitive capacity.
+3. Finer grained service decomposition IMPROVES maintainability, testability, deployability but also INCREASES complexity
+
+Solution
+Each service is owned by a team, which has sole responsibility for making changes. Ideally each team has only one service unless there is a proven need to have multiple services. The team deploys its code as one or more services.
+
+Benefits:
+1. Achieves team autonomy and loose coupling with the minimum number of services
+2. Improves code quality due to long term code ownership
+Drawbacks:
+1. Teams are not necessarily aligned with end user features
+2. Implementing features that span services is more complicated and requires teams to collaborate
