@@ -1,0 +1,7 @@
+PATTERN 1: STRANGLER APPLICATION
+Problem - How do you migrate a legacy monolithic application to a microservice architecture?
+Solution - Incrementally developing a new (strangler) application around the legacy application. In this scenario, the strangler application has a microservice architecture. Strangler application consists of sevaral smaller microservices - which could implement functionality that resided in the legacy application or new functionality. Also, the monolith decreases in size over time.
+
+PATTERN 2: ANTI-CORRUPTION LAYER 
+Problem - How do you prevent a legacy monolith’s domain model from polluting the domain model of a new service.
+Solution - Define an anti-corruption layer, which translates between the two domain models.
