@@ -1,0 +1,24 @@
+Problem and Driving Forces are the same as 2.4.1
+
+Solution - Use a (single) database that is shared by multiple services. Each service freely accesses data owned by other services using local ACID transactions. The OrderService and CustomerService freely access each other’s tables. For example, the OrderService can use the following ACID transaction ensure that a new order will not violate the customer’s credit limit. The database will guarantee that the credit limit will not be exceeded even when simultaneous transactions attempt to create orders for the same customer.
+
+BEGIN TRANSACTION
+…
+SELECT ORDER_TOTAL
+ FROM ORDERS WHERE CUSTOMER_ID = ?
+…
+SELECT CREDIT_LIMIT
+FROM CUSTOMERS WHERE CUSTOMER_ID = ?
+…
+INSERT INTO ORDERS …
+…
+COMMIT TRANSACTION
+
+Benefits:
+1. Developers can use the familiar ACID transactions to enforce data consistency
+2. Single DB is easier to maintain
+
+Drawbacks:
+1. Development time coupling - Developer working on one service will need to co-ordinate schema changes with other service developers, that access the same tables. This slows down development
+2. Runtime coupling - Because all services access the same database they can potentially interfere with one another. Long-running queries from one service can hold the lock and block operations of another service accessing the same table
+3. Single database might not satisfy the data storage and access requirements of all services
