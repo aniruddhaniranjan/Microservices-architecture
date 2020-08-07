@@ -1,0 +1,28 @@
+Problem - What is the DB architecture in a microservices system
+
+Driving Forces:
+1. Services must be loosely coupled
+2. Some business transactions must enforce invariants that span multiple services, while other business transactions need to query data that is owned by multiple services.
+3. Some queries must join data that is owned by multiple services
+4. Some DBs must be replicated and/or sharded for scalability
+5. Different services have different data storage requirements (SQL vs NoSQL)
+
+Solution:
+Keep each microservice’s persistent data private to that service and accessible only via its API. A service’s transactions only involve its database. The service’s database is effectively part of the implementation of that service. It cannot be accessed directly by other services. Some ways to keep DB private:
+1. Private-tables-per-service – each service owns a set of tables that must only be accessed by that service
+2. Schema-per-service – each service has a database schema that’s private to that service
+3. Database-server-per-service – each service has it’s own database server.
+Methods 1 and 2 have lowest overhead. Method 2 makes ownership clearer. While Method 3 might be necessary for high throughput services.
+The DBs can be made private by using database access control mechanism such as grants.
+
+Benefits:
+1. Helps ensure the services are loosely coupled
+2. Each services can use the type of DB that fits its needs
+Drawbacks:
+1. Implementing business transactions that span multiple services is not straightforward. Distributed transactions are best avoided because of the CAP theorem. Moreover, many modern (NoSQL) databases don’t support them
+2. Implementing queries that join data that is now in multiple databases is challenging
+3. Complexity of managing multiple SQL and NoSQL databases
+
+Patterns/Solutions for implementing transactions and services that span multiple services:
+Implementing transactions that span services - use the Saga pattern.
+Implementing queries that span services - API Composition, Command Query Responsibility Segregation (CQRS)
