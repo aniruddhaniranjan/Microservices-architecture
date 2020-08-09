@@ -1,6 +1,0 @@
-Problem - How to implement queries and joins in a microservice architecture?
-Solution - Implement a query by defining an API Composer, which invokes the services that own the data and performs an in-memory join of the results (An API Gateway often does API composition.)
-Benefits:
-It a simple way to query data in a microservice architecture
-Drawbacks:
-Some queries would result in inefficient, in-memory joins of large datasets

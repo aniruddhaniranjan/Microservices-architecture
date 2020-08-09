@@ -1,0 +1,20 @@
+PATTERN 1 : API COMPOSITION
+Problem - How to implement queries and joins in a microservice architecture?
+Solution - Implement a query by defining an API Composer, which invokes the services that own the data and performs an in-memory join of the results (An API Gateway often does API composition.)
+Benefits:
+It a simple way to query data in a microservice architecture
+Drawbacks:
+Some queries would result in inefficient, in-memory joins of large datasets
+
+PATTERN 2 : CQRS, Command Query Responsilibity Segregation
+Problem - How to implement a query that retrieves data from multiple services in a microservice architecture?
+Solution - Define a view database, which is a read-only replica that is designed to support that query. The application keeps the replica up to data by subscribing to Domain events published by the service that own the data.
+Example - An Order History service which has a read-only view of the order histories. The actual owners of different datasets are services such as order service, kitchen service, delivery services. Order History service keeps the read-only view updated by subscribing to domain events published by the different services
+Benefits:
+1. Supports multiple denormalized views that are scalable and performant
+2. Improved separation of concerns = simpler command and query models
+3. Necessary in an event sourced architecture
+Drawbacks:
+1. Increased complexity
+2. Potential code duplication
+3. Replication lag/eventually consistent views
