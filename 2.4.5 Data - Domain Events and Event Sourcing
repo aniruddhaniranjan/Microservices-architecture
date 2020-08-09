@@ -13,7 +13,7 @@ Solution: Event sourcing persists the state of a business entity such an Order o
 
 Benefits:
 1. It solves one of the key problems in implementing an event-driven architecture and makes it possible to reliably publish events whenever state changes.
-2. Because it persists events rather than domain objects, it mostly avoids the object‑relational impedance mismatch problem.
+2. Because it persists events rather than domain objects, it mostly avoids the object‑relational impedance mismatch problem (technical challanges involved in mapping between objects/classes in OOP and tables/schemas in Relational DBs).
 3. It provides a 100% reliable audit log of the changes made to a business entity
 4. It makes it possible to implement temporal queries that determine the state of an entity at any point in time.
 5. Event sourcing-based business logic consists of loosely coupled business entities that exchange events. This makes it a lot easier to migrate from a monolithic application to a microservice architecture.
