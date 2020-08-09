@@ -1,0 +1,25 @@
+When multiple DBs exist (one per microservices), a simple ACID transaction is not sufficient.
+
+Problem - How to implement transactions that span services?
+Forces - 2PC is not an option [https://en.wikipedia.org/wiki/Two-phase_commit_protocol]
+
+Solution:
+Implement each business transaction that spans multiple services is a saga. A saga is a sequence of local transactions. Each local transaction updates the database and publishes a message or event to trigger the next local transaction in the saga. If a local transaction fails because it violates a business rule then the saga executes a series of compensating transactions that undo the changes that were made by the preceding local transactions.
+There are two ways of coordination sagas:
+Choreography - each local transaction publishes domain events that trigger local transactions in other services
+Orchestration - an orchestrator (object) tells the participants what local transactions to execute
+
+Example of Choreography pattern - An eCommerce application has Order service and Customer service. Order service first receives the POST /order. It then emits an event which is handled by the Customer service's event handler. Then Customer service emits an event indicating the result of processing the event. Order service consumes this event and responds to the initial request
+
+Example of Orchestrator pattern - Order Service receives the POST /orders request and creates the Create Order saga orchestrator. The saga orchestrator creates an Order in the PENDING state. It then sends a Reserve Credit command to the Customer Service. The Customer Service attempts to reserve credit, and sends back a reply message indicating the outcome. The saga orchestrator either approves or rejects the Order
+
+Benefits:
+Allows application to maintain data consistency across multiple databases without using distributed transactions (2PC is synchronous whereas Saga is asynchronous). In a Saga pattern, the distributed transaction is fulfilled by asynchronous local transactions on all related microservices
+Drawbacks:
+The programming model is more complex. For example, a developer must design compensating transactions that explicitly undo changes made earlier in a saga.
+
+In order to be reliable, a service must ATOMICALLY update its database AND publish a message/event. It cannot use the traditional mechanism of a distributed transaction that spans the database and the message broker.
+The following patterns are ways to atomically update state and publish messages/events:
+1. Event sourcing
+2. Transactional Outbox
+A choreography-based saga can publish events using Aggregates and Domain Events
