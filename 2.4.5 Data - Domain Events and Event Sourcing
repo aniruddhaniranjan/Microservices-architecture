@@ -5,3 +5,18 @@ What are aggregates?
 A DDD aggregate is a cluster of domain objects that can be treated as a single unit. An example may be an order and its line-items. An aggregate will have one of its component objects be the aggregate root. Any references from outside the aggregate should only go to the aggregate root. The root can thus ensure the integrity of the aggregate as a whole. Aggregates are the basic element of transfer of data storage - you request to load or save whole aggregates. Transactions should not cross aggregate boundaries. (An aggregate will often contain mutliple collections, together with simple fields).
 
 EVENT SOURCING:
+Context: A service command typically needs to update the database AND send messages/events. For example, a service that participates in a saga needs to atomically update the database and sends messages/events. Similarly, a service that publishes a domain event must atomically update an aggregate and publish an event. The database update AND sending of the message must be ATOMIC in order to avoid data inconsistencies and bugs. However, it is not viable to use a distributed transaction that spans the database and the message broker to atomically update the database and publish messages/events.
+Problem: How to reliably/atomically update the database and publish messages/events?
+Forces: 2PC is not an option
+
+Solution: Event sourcing persists the state of a business entity such an Order or a Customer as a sequence of state-changing events. Whenever the state of a business entity changes, a new event is appended to the list of events. Since saving an event is a single operation, it is inherently atomic. The application reconstructs an entity’s current state by replaying the events. Applications persist events in an event store, which is a database of events. The store has an API for adding and retrieving an entity’s events. The event store also behaves like a message broker. It provides an API that enables services to subscribe to events. When a service saves an event in the event store, it is delivered to all interested subscribers. Some entities, such as a Customer, can have a large number of events. In order to optimize loading, an application can periodically save a snapshot of an entity’s current state. To reconstruct the current state, the application finds the most recent snapshot and the events that have occurred since that snapshot. As a result, there are fewer events to replay.
+
+Benefits:
+1. It solves one of the key problems in implementing an event-driven architecture and makes it possible to reliably publish events whenever state changes.
+2. Because it persists events rather than domain objects, it mostly avoids the object‑relational impedance mismatch problem.
+3. It provides a 100% reliable audit log of the changes made to a business entity
+4. It makes it possible to implement temporal queries that determine the state of an entity at any point in time.
+5. Event sourcing-based business logic consists of loosely coupled business entities that exchange events. This makes it a lot easier to migrate from a monolithic application to a microservice architecture.
+Drawbacks:
+1. It is a different and unfamiliar style of programming and so there is a learning curve.
+2. The event store is difficult to query since it requires typical queries to reconstruct the state of the business entities. That is likely to be complex and inefficient. As a result, the application must use Command Query Responsibility Segregation (CQRS) to implement queries. This in turn means that applications must handle eventually consistent data
