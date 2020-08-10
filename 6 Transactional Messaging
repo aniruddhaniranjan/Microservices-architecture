@@ -1,0 +1,27 @@
+TRANSACTIONAL OUTBOX (or APPLICATION EVENTS)
+A service command typically needs to update the database and send messages/events. (In saga, service updates DB + send event, service publishing domain event updates aggregate + send event). The database update and sending of the message must be atomic in order to avoid data inconsistencies and bugs. However, it is not viable to use a distributed transaction that spans the database and the message broker.
+Problem: How to reliably/atomically update the database and publish messages/events?
+Forces: 2PC is not an option (distributed transaction spanning DB + send event is not an option)
+Solution:
+A service that uses a relational database inserts messages/events into an outbox table (e.g. MESSAGE) as part of the local transaction. An service that uses a NoSQL database appends the messages/events to attribute of the record (e.g. document or item) being updated. A separate Message Relay process publishes the events inserted into database to a message broker.
+Benefits:
+1. The service publishes high-level domain events
+2. No 2PC required
+Drawbacks:
+1. Potentially error prone since the developer might forget to publish the message/event after updating the database.
+2. What is relay or broker fails?
+The Message Relay might publish a message more than once. Crash after publishing but updating success, then retry again. As a result, a message consumer must be idempotent, perhaps by tracking the IDs of the messages that it has already processed. Fortunately, since Message Consumers usually need to be idempotent (because a message broker can deliver messages more than once) this is typically not a problem. Read Message Semantics in Kafka.
+
+TRANSACTION LOG TAILING
+Transactional outbox pattern is already applied
+Problem: How to publish messages/events into the outbox in the database to the message broker?
+Solution: Tail the database transaction log and publish each message/event inserted into the outbox to the message broker. The committed inserts into the OUTBOX, are recorded the DB's transaction log. A TRANSACTION LOG MINER will tail/read this log and publish these changes to the message broker. The mechanism for trailing the transaction log depends on the database: MySQL binlog, Postgres WAL, AWS DynamoDB table streams
+Benefits:
+1. No 2PC
+2. Guaranteed to be accurate
+Drawbacks:
+1. Relatively obscure although becoming increasing common
+2. Requires database specific solutions
+3. Tricky to avoid duplicate publishing
+
+POLLING PUBLISHER:
