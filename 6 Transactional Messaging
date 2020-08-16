@@ -9,7 +9,7 @@ Benefits:
 2. No 2PC required
 Drawbacks:
 1. Potentially error prone since the developer might forget to publish the message/event after updating the database.
-2. What is relay or broker fails?
+2. What if relay or broker fails?
 The Message Relay might publish a message more than once. Crash after publishing but updating success, then retry again. As a result, a message consumer must be idempotent, perhaps by tracking the IDs of the messages that it has already processed. Fortunately, since Message Consumers usually need to be idempotent (because a message broker can deliver messages more than once) this is typically not a problem. Read Message Semantics in Kafka.
 
 TRANSACTION LOG TAILING
@@ -25,3 +25,11 @@ Drawbacks:
 3. Tricky to avoid duplicate publishing
 
 POLLING PUBLISHER:
+Transactional outbox pattern is already applied
+Problem: How to publish messages/events into the outbox in the database to the message broker?
+Solution: Publish messages by polling the database’s outbox table.
+Benefits:
+1. Works with any SQL database
+Drawbacks:
+1. Tricky to publish events in order
+2. Not all NoSQL databases support this
