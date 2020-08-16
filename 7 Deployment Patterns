@@ -1,0 +1,69 @@
+Problem: How are services packaged and deployed? (Each service is deployed as a set of code instances for throughput and availability)
+Forces:
+1. Services are written using a variety of languages, frameworks, and framework versions
+2. Each service consists of multiple service instances for throughput and availability
+3. Services need to be independently and quickly deployed and scaled
+4. You need to be able to constrain the resources (CPU and memory) consumed by a service
+5. You need to monitor the behavior of each service instance
+6. Deployment must be reliable and cost-effective
+
+PATTERN 1: MULTIPLE SERVICE INSTANCES PER HOST
+Run multiple instances of different services on a host (Physical or Virtual machine).
+There are various ways of deploying a service instance on a shared host including:
+1. Deploy each service instance as a JVM process. For example, a Tomcat or Jetty instances per service instance.
+2. Deploy multiple service instances in the same JVM. For example, as web applications or OSGI bundles.
+Benefits:
+1. More efficient resource utilization than the Service Instance per host pattern
+Drawbacks:
+1. Risk of conflict in resource consumption
+2. Risk of conflict in deployment version
+3. If multiple services instances are deployed in the same process then its difficult to monitor the resource consumption of each service instance. Its also impossible to isolate each instance (for monitor, manage, redeploy)
+
+PATTERN 2: SERVICE INSTANCE PER HOST
+Deploy each single service instance on its own host
+Benefits:
+1. Services instances are isolated from one another
+2. There is no possibility of conflicting resource requirements or dependency versions
+3. A service instance can only consume at most the resources of a single host
+4. Its straightforward to monitor, manage, and redeploy each service instance
+Drawbacks:
+1. Potentially inefficient resource consumption compared to PATTERN 1 because there are multiple hosts
+
+PATTERN 3: SERVICE INSTANCE PER VM
+Package the service as a virtual machine image and deploy each service instance as a separate VM (Netflix packages each service as an EC2 AMI and deploys each service instance as a EC2 instance.)
+Benefits:
+1. Its straightforward to scale the service by increasing the number of instances. Amazon Autoscaling Groups can even do this automatically based on load.
+2. The VM encapsulates the details of the technology used to build the service. All services are, for example, started and stopped in exactly the same way.
+3. Each service instance is isolated
+4. A VM imposes limits on the CPU and memory consumed by a service instance
+5. IaaS solutions such as AWS provide a mature and feature rich infrastructure for deploying and managing virtual machines - Elastic Load Balancer, Autoscaling groups
+Drawbacks:
+1. Building a VM image is slow and time consuming
+
+PATTERN 4: SERVICE INSTANCE PER CONTAINER
+Package the service as a (Docker) container image and deploy each service instance as a container. Docker is becoming an extremely popular way of packaging and deploying services. Each service is packaged as a Docker image and each service instance is a Docker container. Docker clustering frameworks include Kubernetes, Mesos, Amazon EC2 Container Service
+Benefits:
+1. It is straightforward to scale up and down a service by changing the number of container instances.
+2. Container encapsulates the details of the technology used to build the service. All services are, for example, started and stopped in exactly the same way
+3. Each service instance is isolated
+4. A container imposes limits on the CPU and memory consumed by a service instance
+5. SPEED - Containers are extremely fast to build and start. For example, it’s 100x faster to package an application as a Docker container than it is to package it as an AMI. Docker containers also start much faster than a VM since only the application process starts rather than an entire OS.
+Drawbacks:
+1. The infrastructure for deploying containers is not as rich as the infrastructure for deploying virtual machines.
+
+PATTERN 5: SERVERLESS DEPLOYMENT
+Use a deployment infrastructure that hides any concept of servers (i.e. reserved or preallocated resources)- physical or virtual hosts, or containers. The infrastructure takes your service’s code and runs it. You are charged for each request based on the resources consumed. To deploy your service using this approach, you package the code (e.g. as a ZIP file), upload it to the deployment infrastructure and describe the desired performance characteristics. The deployment infrastructure is a utility operated by a public cloud provider. It typically uses either containers or virtual machines to isolate the services. However, these details are hidden from you. Neither you nor anyone else in your organization is responsible for managing any low-level infrastructure such as operating systems, virtual machines, etc.
+Examples are AWS Lambda, Google Cloud Functions, Azure Functions
+Benefits:
+1. No need to spend time on the heavy lifting of managing low-level infrastructure. Instead, you can focus on your code.
+2. Serverless deployment infrastructure is extremely elastic. It automatically scales your services to handle the load.
+3. You pay for each request rather than provisioning what might be under utilized virtual machines or containers.
+Drawbacks:
+1. Significant limitation and constraints - A serverless deployment environment typically has far more constraints that a VM-based or Container-based infrastructure (AWS Lambda support only few languages, only stateless, no longrunning stateful services like DB, Message queue
+2. Limited “input sources” - lambdas can only respond to requests from a limited set of input sources (no subscribe to a message broker such as RabbitMQ.)
+3. Applications must startup quickly - serverless deployment is not a good fit your service takes a long time to start
+4. Risk of high latency - Provisioning and function initialization time, no pre-provisioning to avoid high latency during initial spikes
+
+PATTERN 6: SERVICE DEPLOYMENT PLATFORM
+Use a deployment platform, which is automated infrastructure for application deployment. It provides a service abstraction, which is a named, set of highly available (e.g. load balanced) service instances
+Examples: Kubernetes, Swarm, AWS lambda, Cloud Foundry
