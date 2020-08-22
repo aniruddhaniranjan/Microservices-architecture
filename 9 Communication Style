@@ -1,0 +1,49 @@
+Services must handle requests from the application’s clients. Furthermore, services must sometimes collaborate to handle those requests. They must use an inter-process communication protocol.
+
+Forces
+Services often need to collaborate
+Synchronous communicate results in tight runtime coupling
+Problem - How do services in a microservice architecture communicate?
+
+1 REMOTE PROCEDURE CALLS (RPC)
+Solution - Use RPC, client uses a request/reply-based protocol to make requests to a service (REST, gRPC, Apache Thrift)
+
+Benefits:
+Simple and familiar
+Request/reply is easy
+Simpler system since there in no intermediate broker
+Drawbacks:
+Usually only supports request/reply and not other interaction patterns such as notifications, request/async response, publish/subscribe, publish/async response
+Reduced availability since the client and the service must be available for the duration of the interaction
+Issues:
+Client needs to discover locations of service instances
+
+2 MESSAGING
+Solution - Use asynchronous messaging for inter-service communication. Services communicating by exchanging messages over messaging channels.
+There are several different styles of asynchronous communication:
+Request/response - a service sends a request message to a recipient and expects to receive a reply message promptly
+Notifications - a sender sends a message a recipient but does not expect a reply. Nor is one sent.
+Request/asynchronous response - a service sends a request message to a recipient and expects to receive a reply message eventually
+Publish/subscribe - a service publishes a message to zero or more recipients
+Publish/asynchronous response - a service publishes a request to one or recipients, some of whom send back a reply
+
+Benefits:
+Loose runtime coupling since it decouples the message sender from the consumer
+Improved availability since the message broker buffers messages until the consumer is able to process them
+Supports a variety of communication patterns including request/reply, notifications, request/async response, publish/subscribe, publish/async response etc
+Drawbacks:
+Additional complexity of message broker, which must be highly available
+
+3 DOMAIN SPECIFIC PROTOCOL
+Solution:
+Use a domain-specific protocol for inter-service communication.
+Examples:
+Email protocols such as SMTP and IMAP
+Media streaming protocols such as RTMP, HLS, and HDS
+
+4 IDEMPOTENT CONSUMER
+Associated Problem in above patterns:
+How does a message consumer handle duplicate message?
+Solution
+Implement an idempotent consumer, which is a message consumer that can cope with being invoked multiple times with the same message. Some consumers are naturally idempotent. Others must track the messages that they have processed in order to detect and discard duplicates.
+
