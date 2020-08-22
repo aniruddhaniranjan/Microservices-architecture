@@ -1,0 +1,77 @@
+Services typically need to call one another. In a monolithic application, services invoke one another through language-level method or procedure calls. In a traditional distributed system deployment, services run at fixed, well known locations (hosts and ports) and so can easily call one another using HTTP/REST or some RPC mechanism. However, a modern microservice-based application typically runs in a virtualized or containerized environments where the number of instances of a service and their locations changes dynamically. Consequently, you must implement a mechanism for that enables the clients of service to make requests to a dynamically changing set of ephemeral service instances.
+
+Problem:
+How does the client of a service - the API gateway or another service - discover the location of a service instance?
+Forces:
+1. Each instance of a service exposes a remote API such as HTTP/REST, or Thrift etc. at a particular location (host and port)
+2. The number of services instances and their locations changes dynamically.
+3. Virtual machines and containers are usually assigned dynamic IP addresses.
+4. The number of services instances might vary dynamically.
+
+PATTERN 1: CLIENT-SIDE DISCOVERY
+Solution:
+When making a request to a service, the client obtains the location of a service instance by querying a Service Registry, which knows the locations of all service instances. This is typically handled by a Microservice chassis framework
+Benefits:
+1. Fewer moving parts and network hops compared to Server-side Discovery
+Drawbacks:
+1. This pattern couples the client to the Service Registry
+2. You need to implement client-side service discovery logic for each programming language/framework used by your application, e.g Java/Scala, JavaScript/NodeJS
+
+PATTERN 2: SERVER-SIDE DISCOVERY
+Solution:
+When making a request to a service, the client makes a request via a router (a.k.a load balancer) that runs at a well known location. The router queries a service registry, which might be built into the router, and forwards the request to an available service instance.
+An AWS Elastic Load Balancer (ELB) is an example of a server-side discovery router. A client makes HTTP(s) requests (or opens TCP connections) to the ELB, which load balances the traffic amongst a set of EC2 instances. An ELB can load balance either external traffic from the Internet or, when deployed in a VPC, load balance internal traffic. An ELB also functions as a Service Registry. EC2 instances are registered with the ELB either explicitly via an API call or automatically as part of an auto-scaling group.
+Some clustering solutions such as Kubernetes and Marathon run a proxy on each host that functions as a server-side discovery router. In order to access a service, a client connects to the local proxy using the port assigned to that service. The proxy then forwards the request to a service instance running somewhere in the cluster.
+
+Benefits:
+1. Compared to client-side discovery, the client code is simpler since it does not have to deal with discovery. Instead, a client simply makes a request to the router
+2. Some cloud environments provide this functionality, e.g. AWS Elastic Load Balancer
+Drawbacks:
+1. Unless it’s part of the cloud environment, the router is another system component that must be installed and configured. It will also need to be replicated for availability and capacity.
+2. The router must support the necessary communication protocols (e.g HTTP, gRPC, Thrift, etc) unless it is TCP-based router
+3. More network hops are required than when using Client Side Discovery
+
+SERVICE REGISTRY
+Clients of a service use either Client-side discovery or Server-side discovery to determine the location of a service instance to which to send requests
+Problem:
+How do clients of a service (in the case of Client-side discovery) and/or routers (in the case of Server-side discovery) know about the available instances of a service?
+Forces:
+1. Each instance of a service exposes a remote API such as HTTP/REST, or Thrift etc. at a particular location (host and port)
+2. The number of services instances and their locations changes dynamically
+
+Solution:
+Implement a service registry, which is a database of services, their instances and their locations. Service instances are registered with the service registry on startup and deregistered on shutdown. Client of the service and/or routers query the service registry to find the available instances of a service. A service registry might invoke a service instance’s health check API to verify that it is able to handle requests
+Benefits:
+1. Client of the service and/or routers can discover the location of service instances.
+Drawbacks:
+1. Service Registry is another critical component - it must be deployed, managed and it should be highly available (for querying at any point, even if service info is cached by clients)
+2. The clients of the service registry need to know the location(s) of the service registry instances. Service registry instances must be deployed on fixed and well known IP addresses. Clients are configured with those IP addresses.
+
+REGISTRATION METHODOLOGY
+Service instances must be registered with the service registry on startup so that they can be discovered and unregistered on shutdown.
+Problem:
+How are service instances registered with and unregistered from the service registry?
+Forces:
+1. Service instances must be registered with the service registry on startup and unregistered on shutdown
+2. Service instances that crash must be unregistered from the service registry
+3. Service instances that are running but incapable of handling requests must be unregistered from the service registry
+
+PATTERN 1: SELF REGISTRATION
+Solution:
+A service instance is responsible for registering itself with the service registry. On startup the service instance registers itself (host and IP address) with the service registry and makes itself available for discovery. The service must typically periodically renew its registration so that the registry knows it is still alive. On shutdown, the service instance unregisters itself from the service registry. This is typically handled by a Microservice chassis framework
+Benefits:
+1. A service instance knows its own state so can implement a state model that’s more complex than UP/DOWN, e.g. STARTING, AVAILABLE
+Drawbacks:
+1. Couples the service to the Service Registry
+2. You must implement service registration logic in each programming language/framework
+3. A service instance that is running yet unable to handle requests will often lack the self-awareness to unregister itself from the service registry
+
+PATTERN 2: 3RD PARTY REGISTRATION
+Solution:
+A 3rd party registrar is responsible for registering and unregistering a service instance with the service registry. When the service instance starts up, the registrar registers the service instance with the service registry. When the service instance shuts downs, the registrar unregisters the service instance from the service registry.
+Benefits:
+1. The service code is less complex than when using the Self Registration pattern since its not responsible for registering itself
+2. The registrar can perform health checks on a service instance and register/unregister the instance based the health check
+Drawbacks:
+1. The 3rd party registrar might only have superficial knowledge of the state of the service instance, e.g. RUNNING or NOT RUNNING and so might not know whether it can handle requests even if service is RUNNING, but some registrar's can do a health check to determine availability
+2. Unless the registrar is part of the infrastructure it’s another component that must be installed, configured and maintained. Also, since it’s a critical system component it needs to be highly available
