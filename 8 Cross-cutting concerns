@@ -1,0 +1,6 @@
+1 MICROSERVICE CHASSIS
+When you start the development of an application you often spend a significant amount of time putting in place the mechanisms to handle cross-cutting concerns:
+Externalized configs - such as credentials
+Logging, Health Checks, Metrics
+Distributed tracing - instrument services with code that assigns each external request an unique identifier that is passed between services
+
