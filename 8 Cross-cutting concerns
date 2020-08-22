@@ -1,6 +1,38 @@
 1 MICROSERVICE CHASSIS
 When you start the development of an application you often spend a significant amount of time putting in place the mechanisms to handle cross-cutting concerns:
-Externalized configs - such as credentials
+Externalized configs - such as credentials, and network locations of external services such as databases and message brokers
 Logging, Health Checks, Metrics
 Distributed tracing - instrument services with code that assigns each external request an unique identifier that is passed between services
 
+As well as these generic cross-cutting concerns, there are also cross-cutting concerns that are specific to the technologies that an application uses. Applications that use infrastructure services such as databases or a message brokers require boilerplate configuration in order to do that. If you are developing an application that has the microservice architecture. There are tens or hundreds of services. You will frequently create new services, each of which will only take days or weeks to develop. You cannot afford to spend a few days configuring the mechanisms to handle cross-cutting concerns. In a microservice architecture there are additional cross-cutting concerns that you have to deal with including service registration and discovery, and circuit breakers for reliably handling partial failure.
+
+Forces:
+Creating a new microservice should be fast and easy
+When creating a microservice you must handle cross-cutting concerns such as externalized configuration, logging, health checks, metrics, service registration and discovery, circuit breakers. There are also cross-cutting concerns that are specific to the technologies that the microservices uses.
+
+Solution:
+Build your microservices using a microservice chassis framework, which handles cross-cutting concerns
+
+Examples:
+Java - SpringBoot, Spring Cloud; Go - Gizmo, Micro, GoKit
+
+Benefit - You can quickly and easy get started with developing a microservice
+Drawback - You need a microservice chassis for each programming language/framework that you want to use. This can be an obstacle to adopting a new programming language or framework
+
+2 EXTERNALIZED CONFIGURATIONS
+An application typically uses one or more infrastructure and 3rd party services. Examples of infrastructure services include: a Service registry, a message broker and a database server. Examples of 3rd party services include: payment processing, email and messaging, etc.
+
+Problem
+How to enable a service to run in multiple environments (dev, test, qa, staging, production) without modification?
+
+Forces:
+A service must be provided with configuration data that tells it how to connect to the external/3rd party services (DB location and credentials)
+A service must run in multiple environments without modification and recompilation
+Different environments have different instances of the external/3rd party services
+
+Solution:
+Externalize all application configuration including the database credentials and network location. On startup, a service reads the configuration from an external source
+Examples of externalized config - operating system environment variables, property files and command line arguments
+
+Benefits - The application runs in multiple environments without modification and/or recompilation
+Drawbacks - How to ensure that when an application is deployed the supplied configuration matches what is expected?
