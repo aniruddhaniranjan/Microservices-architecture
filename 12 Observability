@@ -1,0 +1,97 @@
+Each service instance generates writes information about what it is doing to a log file in a standardized format. The log file contains errors, warnings, information and debug messages.
+Problem
+How to understand the behavior of an application and troubleshoot problems?
+Forces
+Any solution should have minimal runtime overhead
+
+PATTERN 1 : LOG AGGREGATION
+Solution
+Use a centralized logging service that aggregates logs from each service instance. The users can search and analyze the logs. They can configure alerts that are triggered when certain messages appear in the logs. (AWS Cloud Watch)
+Issues:
+Handling a large volume of logs requires substantial infrastructure
+
+PATTERN 2 : APPLICATION METRICS
+Solution
+Instrument a service to gather statistics about individual operations. Aggregate metrics in centralized metrics service, which provides reporting and alerting. There are two models for aggregating metrics:
+push - the service pushes metrics to the metrics service
+pull - the metrics services pulls metrics from the service
+Benefits:
+Deep insight into what is happening in services
+Drawbacks:
+Ties the metrics code with the businiess logic of the services
+Issues:
+Aggregating metrics can require significant infrastructure
+
+PATTERN 3 : AUDIT LOGGING (ACTIVITIY LOGGING)
+Solution
+Record user activity in a database. This pattern is widely used.
+Benefits:
+Provides a record of user actions
+Drawbacks:
+The auditing code is intertwined with the business logic, which makes the business logic more complicated
+
+PATTERN 4 : DISTRIBUTED TRACING
+Each service handles an external request by performing one or more operations, e.g. database queries, publishes messages, etc.
+Problem:
+How to understand the behavior of an application and troubleshoot problems?
+Forces:
+1. External monitoring only tells you the overall response time and number of invocations - no insight into the individual operations
+2. Any solution should have minimal runtime overhead
+3. Log entries for a request are scattered across numerous logs
+Solution:
+Instrument services with code that
+1. Assigns each external request a unique external request id
+2. Passes the external request id to all services that are involved in handling the request
+3. Includes the external request id in all log messages
+4. Records information (e.g. start time, end time) about the requests and operations performed into a centralized service
+Sometimes functionality provided by a Microservice Chassis framework.
+
+Benefits:
+1. It provides useful insight into the behavior of the system including the sources of latency
+2. It enables developers to see how an individual request is handled by searching across aggregated logs for its external request id
+Drawbacks:
+Aggregating and storing traces can require significant infrastructure
+
+PATTERN 5 : EXCEPTION TRACKING
+Errors sometimes occur when handling requests. When an error occurs, a service instance throws an exception, which contains an error message and a stack trace.
+Problem:
+How to understand the behavior of an application and troubleshoot problems?
+Forces:
+Exceptions must be de-duplicated, recorded, investigated by developers and the underlying issue resolved
+Any solution should have minimal runtime overhead
+
+Solution
+Report all exceptions to a centralized exception tracking service that aggregates and tracks exceptions and notifies developers
+Benefits:
+It is easier to view exceptions and track their root cause and resolution
+Drawbacks:
+The exception tracking service is additional infrastructure
+
+PATTERN 6 : HEALTH CHECK API
+Sometimes a service instance can be incapable of handling requests yet still be running. For example, it might have ran out of database connections. When this occurs, the monitoring system should generate a alert. Also, the load balancer or service registry should not route requests to the failed service instance.
+Problem:
+How to detect that a running service instance is unable to handle requests?
+Forces:
+An alert should be generated when a service instance fails
+Requests should be routed to working service instances
+
+Solution:
+A service has an health check API endpoint (e.g. HTTP /health) that returns the health of the service. The API endpoint handler performs various checks, such as
+- the status of the connections to the infrastructure services used by the service instance
+- the status of the host, e.g. disk space
+- application specific logic
+A health check client - a monitoring service, service registry or load balancer - periodically invokes the endpoint to check the health of the service instance
+Benefits:
+The health check endpoint enables the health of a service instance to be periodically tested
+Drawbacks:
+The health check might not sufficiently comprehensive or the service instance might fail between health checks and so requests might still be routed to a failed service instance
+
+PATTERN 7 : LOG DEPLOYMENT AND CHANGES
+Problem:
+How to understand the behavior of an application and troubleshoot problems?
+Forces:
+It useful to see when deployments (version of service change) and other (config) changes occur since issues usually occur immediately after a change
+Solution:
+Log every deployment and every change to the (production) environment.
+Benefits:
+Enables deployments and changes to be easily correlated with issues leading to faster resolution
